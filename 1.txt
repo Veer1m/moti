@@ -1,0 +1,93 @@
+Steps:
+Steps to run this program
+(Make sure you are in the folder containing the java files)
+Step 1 - On Terminal 1
+javac *.java
+Step 2 - On Terminal 2
+java Server
+Step 3 - On Terminal 3
+java Client
+1. Define the remote interface.
+2. Implement the remote interface.
+3. Create the server class, register, and bind the remote object.
+4. Create the client class, locate the remote object, and invoke remote methods.
+5. Compile all classes.
+6. Start the RMI registry (if not already running).
+7. Start the server.
+8. Start the client.
+Name: Piyush Navin Gundecha
+Roll No. - 3061
+Subject: Distributed System
+Assignment 1
+Code:
+Circle.java:-
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+public interface Circle extends Remote {
+public double getArea(int radius) throws RemoteException;
+public double getPerimeter(int radius) throws RemoteException;
+}
+CircleImpl.java:-
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+public class CircleImpl extends UnicastRemoteObject implements Circle {
+private double PI;
+public CircleImpl() throws RemoteException {
+super();
+PI = 22.0 / 7.0;
+}
+@Override
+public double getArea(int radius) {
+return PI * radius * radius;
+}
+@Override
+public double getPerimeter(int radius) {
+return 2 * PI * radius;
+}
+}
+Client.java:-
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.Scanner;
+public class Client {
+public static void main(String[] args) {
+try {
+// Locate the registry
+Registry registry = LocateRegistry.getRegistry("127.0.0.1", 4000);
+// Get the references of exported objects from the registry
+Circle circle = (Circle) registry.lookup("rmi://localhost:4000/circle");
+int radius;
+Scanner in=new Scanner(System.in);
+System.out.print("Enter the radius of the circle: ");
+radius=in.nextInt();
+System.out.println("\nThe Area of the circle is "+ circle.getArea(radius));
+System.out.println("The Perimeter of the circle is "+
+circle.getPerimeter(radius));
+} catch (Exception e)
+{
+System.out.println("Client Error: " + e);
+}
+}
+}
+Server.java:-
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+public class Server
+{
+public static void main(String[] args) {
+try {
+System.out.println("Server started...");
+// Set hostname for the server using javaProperty
+System.setProperty("java.rmi.server.hostname", "127.0.0.1");
+// Register the exported class in RMI registry with some name,
+// Client will use that name to get the reference of those exported object
+// Get the registry to register the object.
+Registry registry = LocateRegistry.createRegistry(4000);
+// create product objects
+Circle stub = new CircleImpl();
+registry.rebind("rmi://localhost:4000/circle", stub);
+} catch (Exception e) {
+System.out.println("Server error: " + e);
+}
+}
+}
