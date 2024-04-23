@@ -1,0 +1,144 @@
+CalculatorImpl.java
+import org.omg.CORBA.ORB;
+import CalculatorApp.CalculatorPOA;
+public class CalculatorImpl extends CalculatorPOA {
+private ORB orb;
+public CalculatorImpl(ORB orb) {
+super();
+Name: Piyush Navin Gundecha
+Roll No. - 3061
+Subject: Distributed System
+Assignment 2
+this.orb = orb;
+}
+@Override
+public double add(double x, double y) {
+return x + y;
+}
+@Override
+public double subtract(double x, double y) {
+return x - y;
+}
+@Override
+public double multiply(double x, double y) {
+return x * y;
+}
+@Override
+public double divide(double x, double y) {
+if (y == 0) {
+return Double.MAX_VALUE;
+}
+return x / y;
+}
+@Override
+public void shutdown() {
+orb.shutdown(false);
+}
+}
+//Calculator.idl
+module CalculatorApp
+{
+interface Calculator
+{
+double add(in double x, in double y);
+double subtract(in double x, in double y);
+double multiply(in double x, in double y);
+double divide(in double x, in double y);
+oneway void shutdown();
+};
+};
+Client.java
+import java.util.Scanner;
+import org.omg.CORBA.ORB;
+import org.omg.CosNaming.NamingContextExt;
+import org.omg.CosNaming.NamingContextExtHelper;
+import CalculatorApp.Calculator;
+import CalculatorApp.CalculatorHelper;
+public class Client {
+public static void main(String[] args) {
+try {
+ORB orb = ORB.init(args, null);
+org.omg.CORBA.Object objRef =
+orb.resolve_initial_references("NameService");
+NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+Calculator calculator =
+CalculatorHelper.narrow(ncRef.resolve_str("ABC"));
+Scanner sc = new Scanner(System.in);
+System.out.println("Welcome to addition system:");
+while (true) {
+System.out.println("1. Add");
+System.out.println("2. Subtract");
+System.out.println("3. Multiply");
+System.out.println("4. Divide");
+System.out.println("Press any key to exit");
+System.out.print("Enter your choice: ");
+int choice = sc.nextInt();
+if (choice == 5) {
+break;
+}
+System.out.print("Enter first no: ");
+double x = sc.nextDouble();
+System.out.print("Enter second no: ");
+double y = sc.nextDouble();
+if (choice == 1) {
+System.out.println("Ans = " + x + " + " + y + " = " +
+calculator.add(x, y));
+} else if (choice == 2) {
+System.out.println("Ans = " + x + " - " + y + " = " +
+calculator.subtract(x, y));
+} else if (choice == 3) {
+System.out.println("Ans = " + x + " * " + y + " = " +
+calculator.multiply(x, y));
+} else if (choice == 4) {
+System.out.println("Ans = " + x + " / " + y + " = " +
+calculator.divide(x, y));
+}
+System.out.println("---------------------------------------------------\n");
+}
+sc.close();
+} catch (Exception e) {
+System.out.println("Client Error: " + e);
+e.printStackTrace(System.out);
+}
+}
+}
+Server.java
+import org.omg.CORBA.ORB;
+import org.omg.CosNaming.NameComponent;
+import org.omg.CosNaming.NamingContextExt;
+import org.omg.CosNaming.NamingContextExtHelper;
+import org.omg.PortableServer.POA;
+import org.omg.PortableServer.POAHelper;
+import CalculatorApp.Calculator;
+import CalculatorApp.CalculatorHelper;
+public class Server {
+public static void main(String[] args) {
+try {
+// create and initialize the orb
+ORB orb = ORB.init(args, null);
+// get reference to rootPOA
+POA rootPOA =
+POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
+// activate the POAManager
+rootPOA.the_POAManager().activate();
+// create servant and register it with the ORB
+CalculatorImpl calculator = new CalculatorImpl(orb);
+// get object reference from the servant
+org.omg.CORBA.Object ref = rootPOA.servant_to_reference(calculator);
+Calculator href = CalculatorHelper.narrow(ref);
+org.omg.CORBA.Object objRef =
+orb.resolve_initial_references("NameService");
+NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+NameComponent[] path = ncRef.to_name("ABC");
+ncRef.rebind(path, href);
+System.out.println("Server ready and waiting...");
+while (true) {
+orb.run();
+}
+} catch (Exception e) {
+System.out.println("Server Error: " + e);
+e.printStackTrace(System.out);
+}
+System.out.println("Server Exiting...");
+}
+}

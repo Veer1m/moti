@@ -1,0 +1,30 @@
+Code:-
+Simple Web Service Code (SimpleWebService.java):
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+@Path("data")
+public class SimpleWebService {
+Name: Piyush Navin Gundecha
+Roll No. - 3061
+@GET
+@Produces(MediaType.TEXT_PLAIN)
+public String getDummyData() {
+return "Hello, this is dummy data from the web service!";
+}
+}
+Java Application to Consume the Web Service (WebServiceConsumer.java):
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MediaType;
+public class WebServiceConsumer {
+public static void main(String[] args) {
+Client client = ClientBuilder.newClient();
+String response = client.target("http://localhost:8080/<your_project_name>/data")
+.request(MediaType.TEXT_PLAIN)
+.get(String.class);
+System.out.println("Response from web service: " + response);
+client.close();
+}
+}
